@@ -1,15 +1,7 @@
 ---
-description:
-globs:
-alwaysApply: true
----
-
----
-
 description: Principles of modular programming for the entire project.
 globs: src/\*_/_.py
 alwaysApply: false
-
 ---
 
 # Modular Programming Guidelines

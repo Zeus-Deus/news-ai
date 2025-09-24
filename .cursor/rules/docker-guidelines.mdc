@@ -1,15 +1,7 @@
 ---
-description:
-globs:
-alwaysApply: false
----
-
----
-
 description: Best practices for using Docker in the project.
 globs: docker/Dockerfile\*, docker-compose.yml
 alwaysApply: false
-
 ---
 
 # Docker Guidelines

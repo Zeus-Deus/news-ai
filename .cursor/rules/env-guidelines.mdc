@@ -1,15 +1,7 @@
 ---
-description:
-globs:
-alwaysApply: true
----
-
----
-
 description: Security practices for managing environment variables.
 globs: .env, .env.local
 alwaysApply: false
-
 ---
 
 # Environment Variables Guidelines
