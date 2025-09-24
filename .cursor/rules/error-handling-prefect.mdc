@@ -1,0 +1,15 @@
+---
+description: Error handling best practices for Prefect workflows in the prefect folder.
+globs: prefect/**/*.py
+alwaysApply: false
+---
+
+# Error Handling Guidelines for Prefect Workflows
+
+- Use Prefect's built-in retry mechanisms:
+  - Configure retries with `@task(retries=N)` or `@flow(retries=N)`.
+  - Set retry delays using `retry_delay_seconds`.
+- Log errors using Prefect's logging system to track task states and failures.
+- Organize workflows into smaller tasks to improve fault tolerance and allow granular retries.
+- Use Prefect's state management tools (e.g., `set_state`) to handle task failures gracefully.
+- Avoid using `try`/`except` blocks inside Prefect tasks unless absolutely necessary; rely on Prefect's orchestration features instead.

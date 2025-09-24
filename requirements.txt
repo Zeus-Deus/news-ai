@@ -1,1 +1,4 @@
-feedparser>=6.0,<7 
+feedparser
+prefect==2.20.18
+psycopg2-binary
+python-dotenv

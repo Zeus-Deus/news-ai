@@ -1,0 +1,51 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - postgres
+      - prefect
+
+  postgres:
+    image: postgres:17
+    restart: always
+    # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # This variable holds the comma-separated list of databases to create.
+      # e.g POSTGRES_MULTIPLE_DATABASES: db1,db2,db3
+      POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_MULTIPLE_DATABASES}
+      POSTGRES_DEFAULT_USER_PASSWORD: ${POSTGRES_DEFAULT_USER_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
+      - ./docker/init-schema.sql:/docker-entrypoint-initdb.d/init-schema.sql
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+  prefect:
+    image: prefecthq/prefect:2-python3.12
+    ports:
+      - "4200:4200"
+    environment:
+      PREFECT_API_URL: ${PREFECT_API_URL}
+    volumes:
+      - prefect-data:/root/.prefect
+    command: prefect server start --host 0.0.0.0
+
+volumes:
+  postgres_data:
+  prefect-data:

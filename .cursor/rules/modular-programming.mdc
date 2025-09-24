@@ -20,3 +20,9 @@ alwaysApply: false
 - Use helper functions or utility modules for reusable logic.
 - Follow Python's import conventions to avoid circular dependencies.
 - Document each module with clear docstrings explaining its purpose and usage.
+
+## For Prefect Workflows
+
+- Break workflows into smaller tasks that can be reused across different flows.
+- Use Prefect's task libraries for common operations instead of duplicating logic.
+- Keep configuration (e.g., retries, timeouts) modular by defining it at the task or flow level.
