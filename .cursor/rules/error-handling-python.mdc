@@ -1,0 +1,21 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+---
+
+description: Error handling best practices for Python scripts in the src folder.
+globs: src/\*_/_.py
+alwaysApply: false
+
+---
+
+# Error Handling Guidelines for Python Scripts
+
+- Use `try` and `except` blocks to catch and handle errors gracefully.
+- Log meaningful error messages for debugging purposes using the `logging` module.
+- Avoid catching generic exceptions (`Exception`) unless absolutely necessary; prefer catching specific exceptions.
+- Use `finally` blocks to clean up resources (e.g., closing database connections or file handles).
+- Raise custom exceptions when needed to improve clarity and debugging.

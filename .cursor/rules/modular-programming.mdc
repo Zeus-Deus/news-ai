@@ -1,0 +1,30 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+---
+
+description: Principles of modular programming for the entire project.
+globs: src/\*_/_.py
+alwaysApply: false
+
+---
+
+# Modular Programming Guidelines
+
+## General Principles
+
+- Break down code into separate, interchangeable modules.
+- Each module should focus on one aspect of functionality (Single Responsibility Principle).
+- Avoid copying code across files; create reusable modules and import them as needed.
+- Ensure modules have high cohesion (functions within a module should be closely related).
+- Minimize coupling between modules by using well-defined interfaces or abstractions.
+
+## For Python Code
+
+- Organize Python code into logical modules or packages.
+- Use helper functions or utility modules for reusable logic.
+- Follow Python's import conventions to avoid circular dependencies.
+- Document each module with clear docstrings explaining its purpose and usage.

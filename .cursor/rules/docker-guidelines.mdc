@@ -1,0 +1,19 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+---
+
+description: Best practices for using Docker in the project.
+globs: docker/Dockerfile\*, docker-compose.yml
+alwaysApply: false
+
+---
+
+# Docker Guidelines
+
+- Use Docker Compose to manage multi-container applications.
+- If a service inside `docker-compose.yml` file becomes too large, break it into a corresponding `Dockerfile`.
+- Use the new `docker compose` command (without a hyphen) instead of the deprecated `docker-compose`.

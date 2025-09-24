@@ -1,0 +1,19 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+---
+
+description: Security practices for managing environment variables.
+globs: .env, .env.local
+alwaysApply: false
+
+---
+
+# Environment Variables Guidelines
+
+- Store sensitive data in a `.env` file.
+- Reference environment variables in your scripts to maintain security.
+- When calling a environment varible, don't use a default value.
