@@ -87,7 +87,6 @@ news-ai/
 │   └── __main__.py       # Module entry point
 ├── docker-compose.yml    # 🐳 Multi-service setup
 ├── requirements.txt      # 📦 Python dependencies
-├── run_news_collection.py # 🎯 Direct runner
 └── .env.example         # 🔐 Environment template
 ```
 
@@ -212,7 +211,7 @@ RSS_FEEDS = [
 ### Adding New RSS Feeds
 
 1. Add feed to `RSS_FEEDS` list in `news_collection_flow.py`
-2. Test with: `python run_news_collection.py`
+2. Test with: `python -m app_flows`
 3. Monitor in Prefect UI
 
 ### Adding New Tasks
@@ -302,9 +301,12 @@ docker compose logs postgres
 
 ## 📄 License
 
-This project is part of the Trends in AI course at AP University College Antwerp.
+Licensed under the MIT License. See the LICENSE file for details.
 
----
+### Contributors
+
+- Zeus-Deus
+- Yassir679
 
 **Status**: ⚡ **Step 1 Complete** - News Collection Pipeline operational
 **Next**: 🔄 **Step 2** - AI Processing integration
