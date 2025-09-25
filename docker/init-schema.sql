@@ -4,6 +4,11 @@
 -- Ensure we are connected to the correct database
 \connect raw_db
 
+-- Ensure objects are owned by the application user
+ALTER SCHEMA public OWNER TO raw_db;
+GRANT ALL PRIVILEGES ON SCHEMA public TO raw_db;
+SET ROLE raw_db;
+
 -- Raw articles table (unprocessed news from RSS feeds)
 CREATE TABLE IF NOT EXISTS raw_articles (
     id SERIAL PRIMARY KEY,
@@ -11,10 +16,13 @@ CREATE TABLE IF NOT EXISTS raw_articles (
     source_url TEXT NOT NULL,                 -- Original article URL
     title TEXT,                               -- Article title
     body_html TEXT,                           -- Full article content in HTML
+    image_url TEXT,                           -- Article image/thumbnail URL
     published_at TIMESTAMP WITH TIME ZONE,    -- When article was published
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,  -- When we fetched it
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP   -- Last modification
 );
+
+RESET ROLE;
 
 -- Filtered articles table (processed by AI/LLM)
 -- NOTE: filtered_articles lives in filtered_db. See section below after switching connection.
@@ -42,6 +50,11 @@ CREATE TRIGGER update_raw_articles_updated_at
 -- Switch to filtered_db and create filtered tables there
 \connect filtered_db
 
+-- Ensure objects are owned by the application user
+ALTER SCHEMA public OWNER TO filtered_db;
+GRANT ALL PRIVILEGES ON SCHEMA public TO filtered_db;
+SET ROLE filtered_db;
+
 -- Filtered articles table (processed by AI/LLM)
 CREATE TABLE IF NOT EXISTS filtered_articles (
     id SERIAL PRIMARY KEY,
@@ -49,12 +62,15 @@ CREATE TABLE IF NOT EXISTS filtered_articles (
     title_translated TEXT,                   -- AI-translated title
     content_summary TEXT,                    -- AI-generated summary
     content_translated TEXT,                 -- AI-translated full content
+    image_url TEXT,                          -- Article image/thumbnail URL (inherited from raw)
     sentiment_score DECIMAL(3,2),            -- Sentiment analysis score (-1 to 1)
     categories TEXT[],                       -- Article categories/tags
     processed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     ai_model_used VARCHAR(100),              -- Which AI model processed this
     processing_status VARCHAR(20) DEFAULT 'pending'  -- pending, processing, completed, failed
 );
+
+RESET ROLE;
 
 -- Indexes for performance in filtered_db
 CREATE INDEX IF NOT EXISTS idx_filtered_raw_id ON filtered_articles(raw_article_id);

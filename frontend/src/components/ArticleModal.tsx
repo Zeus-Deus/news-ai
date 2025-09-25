@@ -11,48 +11,72 @@ const ArticleModal: React.FC<Props> = ({ article, onClose }) => {
     <div className="fixed inset-0 bg-[#020617] bg-opacity-95 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
       <div className="bg-white dark:bg-slate-900/90 rounded-3xl shadow-premium max-w-4xl w-full max-h-[90vh] overflow-hidden animate-slide-up border border-secondary-100 dark:border-slate-800/60">
         {/* Header */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-700 dark:from-slate-800 dark:to-slate-700 p-6 text-white relative">
-          <button
-            className="absolute top-4 right-4 w-10 h-10 bg-white bg-opacity-90 rounded-full flex items-center justify-center hover:bg-opacity-100 hover:scale-105 transition-all duration-200 shadow-lg border-2 border-white border-opacity-50"
-            onClick={onClose}
-          >
-            <svg
-              className="w-5 h-5 text-secondary-700"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
+        <div className="bg-gradient-to-r from-primary-600 to-primary-700 dark:from-slate-800 dark:to-slate-700 text-white relative">
+          {/* Hero Image */}
+          {article.image_url && (
+            <div className="h-48 md:h-64 overflow-hidden">
+              <img
+                src={article.image_url}
+                alt={article.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                }}
               />
-            </svg>
-          </button>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            </div>
+          )}
 
-          <div className="flex flex-wrap items-center gap-2 mb-4">
-            <div className="bg-accent-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-              AI Summarized
+          <div
+            className={`${
+              article.image_url ? "absolute bottom-0 left-0 right-0 p-6" : "p-6"
+            }`}
+          >
+            <button
+              className={`absolute ${
+                article.image_url ? "top-4" : "top-4"
+              } right-4 w-10 h-10 bg-white bg-opacity-90 rounded-full flex items-center justify-center hover:bg-opacity-100 hover:scale-105 transition-all duration-200 shadow-lg border-2 border-white border-opacity-50 z-10`}
+              onClick={onClose}
+            >
+              <svg
+                className="w-5 h-5 text-secondary-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <div className="bg-accent-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                AI Summarized
+              </div>
+
+              {article.categories && article.categories.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {article.categories.slice(0, 5).map((category) => (
+                    <span
+                      key={category}
+                      className="px-3 py-1 text-xs font-semibold rounded-full bg-white/10 text-white border border-white/25"
+                    >
+                      {category}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {article.categories && article.categories.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {article.categories.slice(0, 5).map((category) => (
-                  <span
-                    key={category}
-                    className="px-3 py-1 text-xs font-semibold rounded-full bg-white/10 text-white border border-white/25"
-                  >
-                    {category}
-                  </span>
-                ))}
-              </div>
-            )}
+            <h2 className="text-2xl md:text-3xl font-display font-bold leading-tight pr-12">
+              {article.title}
+            </h2>
           </div>
-
-          <h2 className="text-2xl md:text-3xl font-display font-bold leading-tight pr-12">
-            {article.title}
-          </h2>
         </div>
 
         {/* Content */}

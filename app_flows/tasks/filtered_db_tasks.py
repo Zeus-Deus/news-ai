@@ -30,6 +30,7 @@ def save_filtered_article_task(
     content_summary: Optional[str] = None,
     title_translated: Optional[str] = None,
     content_translated: Optional[str] = None,
+    image_url: Optional[str] = None,
     sentiment_score: Optional[float] = None,
     categories: Optional[List[str]] = None,
     ai_model_used: Optional[str] = None
@@ -42,6 +43,7 @@ def save_filtered_article_task(
         content_summary: AI-generated summary
         title_translated: AI-translated title
         content_translated: AI-translated full content
+        image_url: Article image/thumbnail URL
         sentiment_score: Sentiment analysis score (-1 to 1)
         categories: Article categories/tags
         ai_model_used: Which AI model was used
@@ -64,18 +66,20 @@ def save_filtered_article_task(
                     title_translated,
                     content_summary,
                     content_translated,
+                    image_url,
                     sentiment_score,
                     categories,
                     ai_model_used,
                     processing_status
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, 'completed')
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'completed')
                 RETURNING id
             """, (
                 raw_article_id,
                 title_translated,
                 content_summary,
                 content_translated,
+                image_url,
                 sentiment_score,
                 categories,  # PostgreSQL array type
                 ai_model_used

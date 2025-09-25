@@ -34,9 +34,9 @@ app = FastAPI(title="News AI API", version="0.1.0")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # React dev server
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -52,7 +52,7 @@ def list_articles(limit: int = Query(20, ge=1, le=100), offset: int = Query(0, g
         with cf.cursor() as c:
             c.execute(
                 """
-                SELECT id, raw_article_id, title_translated, content_summary, processed_at, ai_model_used, categories
+                SELECT id, raw_article_id, title_translated, content_summary, processed_at, ai_model_used, categories, image_url
                 FROM filtered_articles
                 ORDER BY processed_at DESC
                 LIMIT %s OFFSET %s
@@ -71,17 +71,17 @@ def list_articles(limit: int = Query(20, ge=1, le=100), offset: int = Query(0, g
             with cr.cursor() as c2:
                 c2.execute(
                     """
-                    SELECT id, source_url, published_at, title
+                    SELECT id, source_url, published_at, title, image_url
                     FROM raw_articles
                     WHERE id = ANY(%s)
                     """,
                     (raw_ids,),
                 )
-                for rid, src, pub, title in c2.fetchall():
-                    raw_map[rid] = {"source_url": src, "published_at": pub, "raw_title": title}
+                for rid, src, pub, title, img in c2.fetchall():
+                    raw_map[rid] = {"source_url": src, "published_at": pub, "raw_title": title, "image_url": img}
 
     result = []
-    for id_, rid, title_tr, summary, processed_at, model, categories in rows:
+    for id_, rid, title_tr, summary, processed_at, model, categories, image_url in rows:
         raw_extra = raw_map.get(rid, {})
         result.append(
             {
@@ -92,6 +92,7 @@ def list_articles(limit: int = Query(20, ge=1, le=100), offset: int = Query(0, g
                 "processed_at": processed_at,
                 "ai_model_used": model,
                 "categories": categories,
+                "image_url": image_url or raw_extra.get("image_url"),
                 "source_url": raw_extra.get("source_url"),
                 "published_at": raw_extra.get("published_at"),
             }
@@ -105,7 +106,7 @@ def get_article(id: int):
         with cf.cursor() as c:
             c.execute(
                 """
-                SELECT id, raw_article_id, title_translated, content_summary, processed_at, ai_model_used, categories
+                SELECT id, raw_article_id, title_translated, content_summary, processed_at, ai_model_used, categories, image_url
                 FROM filtered_articles WHERE id=%s
                 """,
                 (id,),
@@ -114,18 +115,18 @@ def get_article(id: int):
     if not row:
         raise HTTPException(status_code=404, detail="Not found")
 
-    id_, rid, title_tr, summary, processed_at, model, categories = row
+    id_, rid, title_tr, summary, processed_at, model, categories, image_url = row
     raw_extra = {}
     if rid:
         with conn_raw() as cr:
             with cr.cursor() as c2:
                 c2.execute(
-                    "SELECT source_url, published_at, title FROM raw_articles WHERE id=%s",
+                    "SELECT source_url, published_at, title, image_url FROM raw_articles WHERE id=%s",
                     (rid,),
                 )
                 r2 = c2.fetchone()
                 if r2:
-                    raw_extra = {"source_url": r2[0], "published_at": r2[1], "raw_title": r2[2]}
+                    raw_extra = {"source_url": r2[0], "published_at": r2[1], "raw_title": r2[2], "image_url": r2[3]}
     return {
         "id": id_,
         "raw_article_id": rid,
@@ -134,6 +135,7 @@ def get_article(id: int):
         "processed_at": processed_at,
         "ai_model_used": model,
         "categories": categories,
+        "image_url": image_url or raw_extra.get("image_url"),
         "source_url": raw_extra.get("source_url"),
         "published_at": raw_extra.get("published_at"),
     }

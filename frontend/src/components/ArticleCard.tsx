@@ -12,11 +12,29 @@ const ArticleCard: React.FC<Props> = ({ article, onClick }) => {
       className="bg-white dark:bg-slate-900/80 rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 cursor-pointer transform hover:-translate-y-1 animate-slide-up border border-secondary-200 dark:border-slate-800/60 overflow-hidden backdrop-blur-sm"
       onClick={onClick}
     >
-      {/* Image placeholder */}
-      <div className="h-40 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center">
-        <div className="text-primary-500 dark:text-slate-200 text-4xl opacity-60">
-          📰
-        </div>
+      {/* Article Image */}
+      <div className="h-40 bg-secondary-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
+        {article.image_url ? (
+          <img
+            src={article.image_url}
+            alt={article.title}
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            onError={(e) => {
+              // Fallback to emoji if image fails to load
+              const target = e.target as HTMLImageElement;
+              target.style.display = "none";
+              const parent = target.parentElement;
+              if (parent) {
+                parent.innerHTML =
+                  '<div class="text-primary-500 dark:text-slate-200 text-4xl opacity-60">📰</div>';
+              }
+            }}
+          />
+        ) : (
+          <div className="text-primary-500 dark:text-slate-200 text-4xl opacity-60">
+            📰
+          </div>
+        )}
       </div>
 
       <div className="p-6">

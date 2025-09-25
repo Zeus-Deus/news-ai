@@ -7,4 +7,5 @@ export interface Article {
   ai_model_used?: string;
   processed_at?: string;
   categories?: string[];
+  image_url?: string;
 }

@@ -67,13 +67,14 @@ def save_articles_to_database_task(articles_list: List[List[Dict[str, Optional[s
                     if cursor.fetchone() is None:
                         # Article doesn't exist, insert it
                         cursor.execute("""
-                            INSERT INTO raw_articles (fingerprint, source_url, title, body_html, published_at)
-                            VALUES (%s, %s, %s, %s, %s)
+                            INSERT INTO raw_articles (fingerprint, source_url, title, body_html, image_url, published_at)
+                            VALUES (%s, %s, %s, %s, %s, %s)
                         """, (
                             article['fingerprint'],
                             article['source_url'],
                             article['title'],
                             article['body_html'],
+                            article['image_url'],
                             article['published_at']
                         ))
                         saved_count += 1

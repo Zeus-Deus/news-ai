@@ -61,10 +61,32 @@ def ai_processing_flow(limit: int = 20):
                 categories_task = categorize_article_task.submit(summary)
                 categories = categories_task.result()
 
+                # Get image_url from raw article
+                image_url = None
+                try:
+                    # Connect to raw_db to get image_url
+                    import psycopg2
+                    raw_conn = psycopg2.connect(
+                        host=os.getenv("POSTGRES_HOST"),
+                        port=os.getenv("POSTGRES_PORT"),
+                        database="raw_db",
+                        user="raw_db",
+                        password=os.getenv("POSTGRES_DEFAULT_USER_PASSWORD")
+                    )
+                    with raw_conn.cursor() as cursor:
+                        cursor.execute("SELECT image_url FROM raw_articles WHERE id = %s", (raw_id,))
+                        result = cursor.fetchone()
+                        if result:
+                            image_url = result[0]
+                    raw_conn.close()
+                except Exception as e:
+                    logger.warning(f"Could not fetch image_url for article {raw_id}: {e}")
+
                 save_filtered_article_task.submit(
                     raw_article_id=raw_id,
                     content_summary=summary,
                     title_translated=original_title,
+                    image_url=image_url,
                     ai_model_used=os.getenv("OPENROUTER_MODEL"),
                     categories=categories
                 )

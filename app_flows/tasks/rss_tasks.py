@@ -47,6 +47,45 @@ def extract_body_html(entry: Any) -> str:
     return content or ""
 
 
+def extract_image_url(entry: Any) -> Optional[str]:
+    """Extract image/thumbnail URL from RSS entry"""
+    # Check for Media RSS thumbnail
+    if hasattr(entry, 'media_thumbnail') and entry.media_thumbnail:
+        if isinstance(entry.media_thumbnail, list):
+            return getattr(entry.media_thumbnail[0], 'url', None) or entry.media_thumbnail[0].get('url')
+        return getattr(entry.media_thumbnail, 'url', None) or entry.media_thumbnail.get('url')
+
+    # Check for Media RSS content
+    if hasattr(entry, 'media_content') and entry.media_content:
+        if isinstance(entry.media_content, list):
+            for media in entry.media_content:
+                if getattr(media, 'medium', None) == 'image' or media.get('medium') == 'image':
+                    return getattr(media, 'url', None) or media.get('url')
+        elif getattr(entry.media_content, 'medium', None) == 'image':
+            return getattr(entry.media_content, 'url', None) or entry.media_content.get('url')
+
+    # Check for enclosures (podcast-style images)
+    if hasattr(entry, 'enclosures') and entry.enclosures:
+        for enclosure in entry.enclosures:
+            if hasattr(enclosure, 'type') and enclosure.type and enclosure.type.startswith('image/'):
+                return getattr(enclosure, 'href', None) or enclosure.get('href')
+
+    # Check for inline images in content/summary
+    content = extract_body_html(entry)
+    if content:
+        import re
+        # Look for img src attributes
+        img_match = re.search(r'<img[^>]+src=["\']([^"\']+)["\'][^>]*>', content, re.IGNORECASE)
+        if img_match:
+            return img_match.group(1)
+
+    # Check for itunes:image (podcast feeds)
+    if hasattr(entry, 'itunes_image') and entry.itunes_image:
+        return getattr(entry.itunes_image, 'href', None) or entry.itunes_image.get('href')
+
+    return None
+
+
 def extract_full_text_from_url(url: str) -> Optional[str]:
     """Download and extract full article text from a URL using trafilatura.
 
@@ -83,6 +122,7 @@ def parse_rss_feed(feed_url: str) -> List[Dict[str, Optional[str]]]:
         title = getattr(entry, "title", "") or entry.get("title", "") or ""
         summary = getattr(entry, "summary", "") or entry.get("summary", "") or ""
         body_html = extract_body_html(entry)
+        image_url = extract_image_url(entry)
 
         # Try to replace RSS body with full-text extraction when possible
         if source_url:
@@ -105,6 +145,7 @@ def parse_rss_feed(feed_url: str) -> List[Dict[str, Optional[str]]]:
                 "source_url": source_url,
                 "title": title,
                 "body_html": body_html,
+                "image_url": image_url,
                 "published_at": published_at,
             }
         )
