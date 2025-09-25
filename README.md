@@ -5,7 +5,7 @@
 [![Prefect](https://img.shields.io/badge/Prefect-024DFD?style=for-the-badge&logo=dataflow&logoColor=white)](https://prefect.io)
 [![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://python.org)
 
-An AI-powered platform that automatically collects news articles from RSS feeds, processes them with AI summarization, and provides a REST API for access.
+An AI-powered platform that automatically collects news articles from multiple RSS feeds (NYT, BBC, TechCrunch, The Verge), processes them with AI summarization and categorization, and provides a modern web interface with filtering capabilities.
 
 ## Quick Start
 
@@ -57,11 +57,16 @@ RSS Feeds (NYT, BBC, TechCrunch, The Verge) → Raw Storage → AI Processing �
 
 ## Features
 
-- **Automated Collection**: RSS feed processing with deduplication (incl. TechCrunch `https://techcrunch.com/feed/` and The Verge `https://www.theverge.com/rss/index.xml`)
-- **AI Summarization**: English article summaries using LLM
-- **REST API**: FastAPI endpoints for article access
-- **Web Interface**: React frontend for browsing articles
-- **Workflow Monitoring**: Prefect UI for pipeline tracking
+- **Automated Collection**: RSS feed processing with deduplication from multiple sources (NYT, BBC, TechCrunch, The Verge)
+- **AI Summarization**: English article summaries using Google Gemma 3 12B via OpenRouter
+- **Duplicate Prevention**: Smart fingerprinting prevents reprocessing of already summarized articles
+- **Category Classification**: AI-powered article categorization (Technology, Business, Politics, etc.)
+- **Pagination**: Infinite scroll with "Load More" functionality in the web interface
+- **Category Filtering**: Filter articles by category (Technology, Business, Politics, World, Science, Health, Sports, Entertainment)
+- **Search Functionality**: Full-text search across article titles and summaries
+- **REST API**: FastAPI endpoints for article access with pagination support
+- **Web Interface**: Modern React frontend with dark mode and responsive design
+- **Workflow Monitoring**: Prefect UI for pipeline tracking and debugging
 - **Database Management**: PgAdmin for data administration
 
 ## API
@@ -79,10 +84,11 @@ RSS Feeds (NYT, BBC, TechCrunch, The Verge) → Raw Storage → AI Processing �
   "id": 1,
   "title": "Article Title",
   "summary": "AI-generated summary...",
+  "categories": ["Technology", "Business"],
   "source_url": "https://example.com",
   "published_at": "2025-01-01T10:00:00Z",
   "processed_at": "2025-01-01T12:00:00Z",
-  "ai_model_used": "dolphin-mistral-24b"
+  "ai_model_used": "google/gemma-3-12b-it"
 }
 ```
 
@@ -98,7 +104,7 @@ POSTGRES_MULTIPLE_DATABASES=raw_db,filtered_db
 
 # AI Processing
 OPENROUTER_API_KEY=your_api_key
-OPENROUTER_MODEL=cognitivecomputations/dolphin-mistral-24b-venice-edition:free
+OPENROUTER_MODEL=google/gemma-3-12b-it
 
 # Prefect
 PREFECT_API_URL=http://prefect:4200/api
@@ -112,8 +118,14 @@ PREFECT_API_URL=http://prefect:4200/api
 # Start all services
 docker compose up -d
 
-# Run news collection and AI processing
-docker compose exec app python -m app_flows
+# Option 1: Run complete pipeline (collection + AI processing)
+docker compose exec app python -m app_flows.flows.complete_news_pipeline_flow
+
+# Option 2: Run only news collection
+docker compose exec app python -m app_flows.flows.news_collection_flow
+
+# Option 3: Run only AI processing on existing articles
+docker compose exec app python -m app_flows.flows.ai_processing_flow
 ```
 
 ### Check Results
