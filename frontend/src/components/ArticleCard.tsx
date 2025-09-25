@@ -61,32 +61,19 @@ const ArticleCard: React.FC<Props> = ({ article, onClick }) => {
             })}
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-medium">
-            <span className="flex items-center text-primary-600 dark:text-primary-300">
-              <svg
-                className="w-3 h-3 mr-1"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              AI Summarized
-            </span>
-
-            {article.categories && article.categories.length > 0 && (
-              <span className="hidden sm:flex items-center text-secondary-500 dark:text-slate-500">
-                <span className="mx-2 text-secondary-300 dark:text-slate-600">
-                  •
-                </span>
-                <span className="truncate max-w-[150px]">
-                  {article.categories.slice(0, 2).join(" · ")}
-                </span>
-              </span>
-            )}
+          <div className="flex items-center text-primary-600 dark:text-primary-300 text-xs font-medium">
+            <svg
+              className="w-3 h-3 mr-1"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            AI Summarized
           </div>
         </div>
 
