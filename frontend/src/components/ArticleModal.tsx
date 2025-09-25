@@ -8,10 +8,10 @@ interface Props {
 
 const ArticleModal: React.FC<Props> = ({ article, onClose }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-premium max-w-4xl w-full max-h-[90vh] overflow-hidden animate-slide-up">
+    <div className="fixed inset-0 bg-[#020617] bg-opacity-95 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+      <div className="bg-white dark:bg-slate-900/90 rounded-3xl shadow-premium max-w-4xl w-full max-h-[90vh] overflow-hidden animate-slide-up border border-secondary-100 dark:border-slate-800/60">
         {/* Header */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-700 p-6 text-white relative">
+        <div className="bg-gradient-to-r from-primary-600 to-primary-700 dark:from-slate-800 dark:to-slate-700 p-6 text-white relative">
           <button
             className="absolute top-4 right-4 w-10 h-10 bg-white bg-opacity-90 rounded-full flex items-center justify-center hover:bg-opacity-100 hover:scale-105 transition-all duration-200 shadow-lg border-2 border-white border-opacity-50"
             onClick={onClose}
@@ -46,9 +46,9 @@ const ArticleModal: React.FC<Props> = ({ article, onClose }) => {
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
           {/* Summary */}
           <div className="mb-8">
-            <h3 className="text-lg font-semibold text-secondary-900 mb-3 flex items-center">
+            <h3 className="text-lg font-semibold text-secondary-900 dark:text-slate-100 mb-3 flex items-center">
               <svg
-                className="w-5 h-5 mr-2 text-primary-600"
+                className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -60,8 +60,8 @@ const ArticleModal: React.FC<Props> = ({ article, onClose }) => {
               </svg>
               AI Summary
             </h3>
-            <div className="bg-secondary-50 rounded-lg p-4 border-l-4 border-primary-500">
-              <p className="text-secondary-700 leading-relaxed text-lg">
+            <div className="bg-secondary-50 dark:bg-slate-800/60 rounded-xl p-6 border-l-4 border-primary-500/80 dark:border-primary-400/70 shadow-inner">
+              <p className="text-secondary-700 dark:text-slate-200 leading-relaxed text-lg">
                 {article.summary}
               </p>
             </div>
@@ -69,10 +69,10 @@ const ArticleModal: React.FC<Props> = ({ article, onClose }) => {
 
           {/* Metadata */}
           <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-secondary-50 rounded-lg p-4">
-              <h4 className="font-semibold text-secondary-900 mb-3 flex items-center">
+            <div className="bg-secondary-50 dark:bg-slate-900/70 rounded-xl p-5 border border-secondary-200 dark:border-slate-800">
+              <h4 className="font-semibold text-secondary-900 dark:text-slate-100 mb-3 flex items-center">
                 <svg
-                  className="w-5 h-5 mr-2 text-primary-600"
+                  className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -84,7 +84,7 @@ const ArticleModal: React.FC<Props> = ({ article, onClose }) => {
                 </svg>
                 Publication Details
               </h4>
-              <div className="space-y-2 text-sm text-secondary-600">
+              <div className="space-y-2 text-sm text-secondary-600 dark:text-slate-400">
                 <div className="flex justify-between">
                   <span className="font-medium">Published:</span>
                   <span>
@@ -122,10 +122,10 @@ const ArticleModal: React.FC<Props> = ({ article, onClose }) => {
               </div>
             </div>
 
-            <div className="bg-secondary-50 rounded-lg p-4">
-              <h4 className="font-semibold text-secondary-900 mb-3 flex items-center">
+            <div className="bg-secondary-50 dark:bg-slate-900/70 rounded-xl p-5 border border-secondary-200 dark:border-slate-800">
+              <h4 className="font-semibold text-secondary-900 dark:text-slate-100 mb-3 flex items-center">
                 <svg
-                  className="w-5 h-5 mr-2 text-primary-600"
+                  className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -137,10 +137,10 @@ const ArticleModal: React.FC<Props> = ({ article, onClose }) => {
                 </svg>
                 AI Processing
               </h4>
-              <div className="space-y-2 text-sm text-secondary-600">
+              <div className="space-y-2 text-sm text-secondary-600 dark:text-slate-400">
                 <div className="flex justify-between">
                   <span className="font-medium">Model:</span>
-                  <span className="text-xs bg-primary-100 text-primary-800 px-2 py-1 rounded">
+                  <span className="text-xs bg-primary-100 dark:bg-primary-500/20 text-primary-800 dark:text-primary-200 px-2 py-1 rounded">
                     {article.ai_model_used || "Unknown"}
                   </span>
                 </div>
@@ -153,10 +153,10 @@ const ArticleModal: React.FC<Props> = ({ article, onClose }) => {
           </div>
 
           {/* Source Link */}
-          <div className="bg-gradient-to-r from-secondary-50 to-secondary-100 rounded-lg p-4 border border-secondary-200">
-            <h4 className="font-semibold text-secondary-900 mb-2 flex items-center">
+          <div className="bg-gradient-to-r from-secondary-50 to-secondary-100 dark:from-slate-900 dark:to-slate-800 rounded-xl p-5 border border-secondary-200 dark:border-slate-800">
+            <h4 className="font-semibold text-secondary-900 dark:text-slate-100 mb-2 flex items-center">
               <svg
-                className="w-5 h-5 mr-2 text-primary-600"
+                className="w-5 h-5 mr-2 text-primary-600 dark:text-primary-400"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -172,9 +172,11 @@ const ArticleModal: React.FC<Props> = ({ article, onClose }) => {
               href={article.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium transition-colors"
+              className="inline-flex items-center text-primary-600 dark:text-primary-300 hover:text-primary-700 dark:hover:text-primary-200 font-medium transition-colors"
             >
-              <span className="truncate mr-2">{article.source_url}</span>
+              <span className="truncate mr-2 text-sm md:text-base">
+                {article.source_url}
+              </span>
               <svg
                 className="w-4 h-4 flex-shrink-0"
                 fill="none"

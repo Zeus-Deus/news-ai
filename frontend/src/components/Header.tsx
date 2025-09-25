@@ -12,16 +12,16 @@ const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery = "" }) => {
   };
 
   return (
-    <header className="bg-gradient-to-r from-primary-600 via-primary-700 to-primary-900 text-white shadow-premium dark:from-dark-primary-900 dark:via-dark-primary-800 dark:to-dark-primary-700">
+    <header className="bg-gradient-to-r from-primary-600 via-primary-700 to-primary-900 text-white shadow-premium dark:bg-gradient-to-r dark:from-[#0f172a] dark:via-[#0b1120] dark:to-[#020617]">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo and Title */}
           <div className="flex items-center space-x-4">
             <div>
-              <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-white to-secondary-100 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-display font-bold bg-gradient-to-r from-white to-secondary-100 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
                 News AI
               </h1>
-              <p className="text-secondary-300 text-sm hidden md:block">
+              <p className="text-secondary-300 dark:text-slate-400 text-sm hidden md:block">
                 AI-powered news insights
               </p>
             </div>

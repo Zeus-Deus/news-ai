@@ -9,27 +9,27 @@ interface Props {
 const ArticleCard: React.FC<Props> = ({ article, onClick }) => {
   return (
     <div
-      className="bg-white dark:bg-dark-secondary-800 rounded-xl shadow-card hover:shadow-card-hover transition-all duration-300 cursor-pointer transform hover:-translate-y-1 animate-slide-up border border-secondary-200 dark:border-dark-secondary-700 overflow-hidden"
+      className="bg-white dark:bg-slate-900/80 rounded-2xl shadow-card hover:shadow-card-hover transition-all duration-300 cursor-pointer transform hover:-translate-y-1 animate-slide-up border border-secondary-200 dark:border-slate-800/60 overflow-hidden backdrop-blur-sm"
       onClick={onClick}
     >
       {/* Image placeholder */}
-      <div className="h-48 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-dark-primary-800 dark:to-dark-primary-700 flex items-center justify-center">
-        <div className="text-primary-500 dark:text-dark-primary-300 text-4xl opacity-50">
+      <div className="h-40 bg-gradient-to-br from-primary-100 to-primary-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center">
+        <div className="text-primary-500 dark:text-slate-200 text-4xl opacity-60">
           📰
         </div>
       </div>
 
       <div className="p-6">
-        <h2 className="text-xl font-semibold mb-3 text-secondary-900 dark:text-dark-secondary-100 line-clamp-2 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+        <h2 className="text-xl font-semibold mb-3 text-secondary-900 dark:text-slate-100 line-clamp-2 hover:text-primary-600 dark:hover:text-primary-300 transition-colors">
           {article.title}
         </h2>
 
-        <p className="text-secondary-600 dark:text-dark-secondary-400 mb-4 line-clamp-3 leading-relaxed">
+        <p className="text-secondary-600 dark:text-slate-400 mb-4 line-clamp-3 leading-relaxed">
           {article.summary.substring(0, 150)}...
         </p>
 
         <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center text-secondary-500 dark:text-dark-secondary-500">
+          <div className="flex items-center text-secondary-500 dark:text-slate-500">
             <svg
               className="w-4 h-4 mr-1"
               fill="currentColor"
@@ -48,7 +48,7 @@ const ArticleCard: React.FC<Props> = ({ article, onClick }) => {
             })}
           </div>
 
-          <div className="flex items-center text-primary-600 dark:text-primary-400 text-xs font-medium">
+          <div className="flex items-center text-primary-600 dark:text-primary-300 text-xs font-medium">
             <svg
               className="w-3 h-3 mr-1"
               fill="currentColor"
@@ -65,8 +65,8 @@ const ArticleCard: React.FC<Props> = ({ article, onClick }) => {
         </div>
 
         {/* Read more indicator */}
-        <div className="mt-4 pt-4 border-t border-secondary-100 dark:border-dark-secondary-700">
-          <div className="flex items-center text-primary-600 dark:text-primary-400 text-sm font-medium">
+        <div className="mt-4 pt-4 border-t border-secondary-100 dark:border-slate-700">
+          <div className="flex items-center text-primary-600 dark:text-primary-300 text-sm font-medium">
             <span>Read full article</span>
             <svg
               className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform"
