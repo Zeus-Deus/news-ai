@@ -2,7 +2,7 @@
 AI/LLM processing tasks for Prefect workflows using OpenRouter.
 """
 import os
-from typing import Optional
+from typing import Optional, List
 
 from openai import OpenAI
 from prefect import task, get_run_logger
@@ -83,6 +83,114 @@ Summary:"""
     except Exception as e:
         logger.error(f"Failed to summarize article: {e}")
         raise
+
+
+@task(retries=2, retry_delay_seconds=10)
+def categorize_article_task(content: str) -> List[str]:
+    """
+    Categorize an article into high-level topic tags using the summary/content.
+
+    Args:
+        content: Article summary or body text.
+
+    Returns:
+        List of 1-3 category labels (Title Case strings).
+    """
+    logger = get_run_logger()
+
+    AVAILABLE_CATEGORIES = [
+        "Technology",
+        "Business",
+        "Politics",
+        "World",
+        "Science",
+        "Health",
+        "Sports",
+        "Entertainment",
+        "Finance",
+        "Climate",
+        "Environment",
+        "Culture",
+        "Geopolitics",
+        "Security",
+        "Education",
+        "Economy",
+        "Opinion"
+    ]
+
+    if not content or len(content.strip()) < 40:
+        logger.warning("Article content too short for categorization")
+        return []
+
+    model = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.2-3b-instruct:free")
+
+    prompt = (
+        "Given the following news article summary, select up to three categories "
+        "from the provided list that best describe the article. Respond ONLY with a "
+        "valid JSON object in the following form: {\"categories\": [\"Category1\", \"Category2\"]}. "
+        "Use only categories from the list.\n\n"
+        f"Available categories: {', '.join(AVAILABLE_CATEGORIES)}\n\n"
+        f"Article summary:\n{content[:3000]}\n\nJSON response:"
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a classifier that tags news articles with professional, "
+                        "high-level categories. Only return valid JSON arrays."
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.2,
+            max_tokens=150,
+            timeout=30,
+        )
+
+        raw_output = response.choices[0].message.content.strip()
+        logger.info(f"Category raw output: {raw_output}")
+
+        import json
+        import re
+
+        cleaned: List[str] = []
+
+        try:
+            parsed = json.loads(raw_output)
+            if isinstance(parsed, dict) and "categories" in parsed:
+                categories = parsed["categories"]
+            elif isinstance(parsed, list):
+                categories = parsed
+            else:
+                raise ValueError("Unexpected JSON structure")
+        except Exception:
+            # Attempt to extract categories using regex if JSON parsing fails
+            matches = re.findall(r"[A-Za-z][A-Za-z\s-]{2,20}", raw_output)
+            categories = matches
+
+        for item in categories:
+            if not isinstance(item, str):
+                continue
+            normalized = item.strip().title()
+            if normalized in AVAILABLE_CATEGORIES and normalized not in cleaned:
+                cleaned.append(normalized)
+            if len(cleaned) == 3:
+                break
+
+        if not cleaned:
+            logger.warning("Categorization returned no valid categories")
+        else:
+            logger.info(f"Categorized article with labels: {cleaned}")
+
+        return cleaned
+
+    except Exception as e:
+        logger.error(f"Failed to categorize article: {e}")
+        return []
 
 
 @task(retries=1)

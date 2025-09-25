@@ -55,7 +55,7 @@ const App: React.FC = () => {
                 ? `Search Results for "${searchQuery}"`
                 : "Latest Articles"}
             </h2>
-            <p className="text-secondary-600 dark:text-slate-400">
+            <p className="text-secondary-600 dark:text-slate-400 text-sm">
               {searchQuery
                 ? `Found ${filteredArticles.length} article${
                     filteredArticles.length !== 1 ? "s" : ""

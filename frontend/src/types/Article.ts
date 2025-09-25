@@ -6,4 +6,5 @@ export interface Article {
   source_url: string;
   ai_model_used?: string;
   processed_at?: string;
+  categories?: string[];
 }

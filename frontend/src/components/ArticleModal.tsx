@@ -31,10 +31,23 @@ const ArticleModal: React.FC<Props> = ({ article, onClose }) => {
             </svg>
           </button>
 
-          <div className="flex items-center mb-2">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <div className="bg-accent-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
               AI Summarized
             </div>
+
+            {article.categories && article.categories.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {article.categories.slice(0, 5).map((category) => (
+                  <span
+                    key={category}
+                    className="px-3 py-1 text-xs font-semibold rounded-full bg-white/10 text-white border border-white/25"
+                  >
+                    {category}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <h2 className="text-2xl md:text-3xl font-display font-bold leading-tight pr-12">

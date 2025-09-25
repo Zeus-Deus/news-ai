@@ -52,7 +52,7 @@ def list_articles(limit: int = Query(20, ge=1, le=100), offset: int = Query(0, g
         with cf.cursor() as c:
             c.execute(
                 """
-                SELECT id, raw_article_id, title_translated, content_summary, processed_at, ai_model_used
+                SELECT id, raw_article_id, title_translated, content_summary, processed_at, ai_model_used, categories
                 FROM filtered_articles
                 ORDER BY processed_at DESC
                 LIMIT %s OFFSET %s
@@ -81,7 +81,7 @@ def list_articles(limit: int = Query(20, ge=1, le=100), offset: int = Query(0, g
                     raw_map[rid] = {"source_url": src, "published_at": pub, "raw_title": title}
 
     result = []
-    for id_, rid, title_tr, summary, processed_at, model in rows:
+    for id_, rid, title_tr, summary, processed_at, model, categories in rows:
         raw_extra = raw_map.get(rid, {})
         result.append(
             {
@@ -91,6 +91,7 @@ def list_articles(limit: int = Query(20, ge=1, le=100), offset: int = Query(0, g
                 "summary": summary,
                 "processed_at": processed_at,
                 "ai_model_used": model,
+                "categories": categories,
                 "source_url": raw_extra.get("source_url"),
                 "published_at": raw_extra.get("published_at"),
             }
@@ -104,7 +105,7 @@ def get_article(id: int):
         with cf.cursor() as c:
             c.execute(
                 """
-                SELECT id, raw_article_id, title_translated, content_summary, processed_at, ai_model_used
+                SELECT id, raw_article_id, title_translated, content_summary, processed_at, ai_model_used, categories
                 FROM filtered_articles WHERE id=%s
                 """,
                 (id,),
@@ -113,7 +114,7 @@ def get_article(id: int):
     if not row:
         raise HTTPException(status_code=404, detail="Not found")
 
-    id_, rid, title_tr, summary, processed_at, model = row
+    id_, rid, title_tr, summary, processed_at, model, categories = row
     raw_extra = {}
     if rid:
         with conn_raw() as cr:
@@ -132,6 +133,7 @@ def get_article(id: int):
         "summary": summary,
         "processed_at": processed_at,
         "ai_model_used": model,
+        "categories": categories,
         "source_url": raw_extra.get("source_url"),
         "published_at": raw_extra.get("published_at"),
     }

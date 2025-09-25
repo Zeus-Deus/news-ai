@@ -10,7 +10,7 @@ from prefect import flow, get_run_logger
 import os
 
 # Import tasks
-from ..tasks.llm_tasks import summarize_article_task, keep_original_title_task
+from ..tasks.llm_tasks import summarize_article_task, keep_original_title_task, categorize_article_task
 from ..tasks.filtered_db_tasks import get_unprocessed_articles_task, save_filtered_article_task
 
 
@@ -58,11 +58,15 @@ def ai_processing_flow(limit: int = 20):
 
             # Save to filtered database
             if summary:  # Only save if we have a summary
+                categories_task = categorize_article_task.submit(summary)
+                categories = categories_task.result()
+
                 save_filtered_article_task.submit(
                     raw_article_id=raw_id,
                     content_summary=summary,
                     title_translated=original_title,
-                    ai_model_used=os.getenv("OPENROUTER_MODEL")
+                    ai_model_used=os.getenv("OPENROUTER_MODEL"),
+                    categories=categories
                 )
                 processed_count += 1
                 logger.info(f"Successfully processed article {raw_id}")
