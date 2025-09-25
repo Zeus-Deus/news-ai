@@ -4,9 +4,26 @@ import ThemeToggle from "./ThemeToggle";
 interface HeaderProps {
   onSearch?: (query: string) => void;
   searchQuery?: string;
+  onCategoryFilter?: (category: string | null) => void;
+  selectedCategory?: string | null;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery = "" }) => {
+const Header: React.FC<HeaderProps> = ({
+  onSearch,
+  searchQuery = "",
+  onCategoryFilter,
+  selectedCategory,
+}) => {
+  const categories = [
+    "Technology",
+    "Business",
+    "Politics",
+    "World",
+    "Science",
+    "Health",
+    "Sports",
+    "Entertainment",
+  ];
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSearch?.(e.target.value);
   };
@@ -25,6 +42,33 @@ const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery = "" }) => {
                 AI-powered news insights
               </p>
             </div>
+          </div>
+
+          {/* Category Filters - Hidden on mobile, visible on md+ */}
+          <div className="hidden md:flex items-center space-x-1">
+            <button
+              onClick={() => onCategoryFilter?.(null)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
+                selectedCategory === null
+                  ? "bg-white text-primary-700 shadow-sm"
+                  : "text-secondary-200 hover:text-white hover:bg-white/10"
+              }`}
+            >
+              All
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => onCategoryFilter?.(category)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
+                  selectedCategory === category
+                    ? "bg-white text-primary-700 shadow-sm"
+                    : "text-secondary-200 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
           </div>
 
           {/* Search Bar - Compact */}
