@@ -53,11 +53,11 @@ docker compose up --build -d
 
 ### Data Flow
 
-RSS Feeds → Raw Storage → AI Processing → Filtered Storage → API → Frontend
+RSS Feeds (NYT, BBC, TechCrunch, The Verge) → Raw Storage → AI Processing → Filtered Storage → API → Frontend
 
 ## Features
 
-- **Automated Collection**: RSS feed processing with deduplication
+- **Automated Collection**: RSS feed processing with deduplication (incl. TechCrunch `https://techcrunch.com/feed/` and The Verge `https://www.theverge.com/rss/index.xml`)
 - **AI Summarization**: English article summaries using LLM
 - **REST API**: FastAPI endpoints for article access
 - **Web Interface**: React frontend for browsing articles

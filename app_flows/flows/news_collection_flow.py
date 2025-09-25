@@ -23,6 +23,14 @@ RSS_FEEDS = [
         "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
         "name": "BBC World"
     },
+    {
+        "url": "https://techcrunch.com/feed/",
+        "name": "TechCrunch"
+    },
+    {
+        "url": "https://www.theverge.com/rss/index.xml",
+        "name": "The Verge"
+    },
     # Add more feeds as needed
 ]
 
