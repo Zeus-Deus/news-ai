@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS raw_articles (
     body_html TEXT,                           -- Full article content in HTML
     image_url TEXT,                           -- Article image/thumbnail URL
     published_at TIMESTAMP WITH TIME ZONE,    -- When article was published
+    processed_at TIMESTAMP WITH TIME ZONE,    -- When article was processed by AI
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,  -- When we fetched it
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP   -- Last modification
 );

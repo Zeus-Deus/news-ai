@@ -24,6 +24,28 @@ def get_filtered_db_connection():
         return None
 
 
+def mark_raw_article_processed(raw_article_id: int) -> None:
+    """Update raw_articles to mark a row as processed."""
+    conn = None
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv("POSTGRES_HOST"),
+            port=os.getenv("POSTGRES_PORT"),
+            database="raw_db",
+            user="raw_db",
+            password=os.getenv("POSTGRES_DEFAULT_USER_PASSWORD"),
+        )
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "UPDATE raw_articles SET processed_at = NOW(), updated_at = NOW() WHERE id = %s",
+                (raw_article_id,),
+            )
+        conn.commit()
+    finally:
+        if conn:
+            conn.close()
+
+
 @task(retries=2, retry_delay_seconds=5)
 def save_filtered_article_task(
     raw_article_id: int,
@@ -88,6 +110,7 @@ def save_filtered_article_task(
             filtered_id = cursor.fetchone()[0]
 
         conn.commit()
+        mark_raw_article_processed(raw_article_id)
         logger.info(f"Successfully saved filtered article id={filtered_id} for raw_article_id={raw_article_id}")
         return filtered_id
 
@@ -133,8 +156,8 @@ def get_unprocessed_articles_task(limit: int = 50) -> List[tuple]:
             cursor.execute("""
                 SELECT ra.id, ra.title, ra.body_html
                 FROM raw_articles ra
-                WHERE ra.created_at > NOW() - INTERVAL '24 hours'
-                ORDER BY ra.created_at DESC
+                WHERE ra.processed_at IS NULL
+                ORDER BY ra.created_at ASC
                 LIMIT %s
             """, (limit,))
 
