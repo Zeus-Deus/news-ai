@@ -3,6 +3,7 @@ from typing import Dict, Any
 
 import psycopg2
 from fastapi import FastAPI, Query, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path="/usr/src/app/.env")
@@ -29,6 +30,15 @@ def conn_raw():
 
 
 app = FastAPI(title="News AI API", version="0.1.0")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React dev server
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health")

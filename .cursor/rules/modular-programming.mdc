@@ -26,3 +26,10 @@ alwaysApply: false
 - Break workflows into smaller tasks that can be reused across different flows.
 - Use Prefect's task libraries for common operations instead of duplicating logic.
 - Keep configuration (e.g., retries, timeouts) modular by defining it at the task or flow level.
+
+## For Frontend Code (Chat-UI)
+
+- Use React's component-based architecture to create self-contained, reusable components.
+- Organize components into directories based on their role (e.g., `components/`, `hooks/`).
+- Use custom hooks to encapsulate reusable logic (e.g., API calls, state management).
+- Keep styling modular by using scoped CSS (e.g., TailwindCSS classes) or CSS-in-JS solutions.
