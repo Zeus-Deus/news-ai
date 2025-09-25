@@ -25,6 +25,7 @@ docker compose exec postgres psql -U postgres -d filtered_db -c "SELECT title_tr
 
 - RSS feed collection from NYT World and BBC World
 - Article deduplication using SHA256 fingerprints
+- Full-text extraction with trafilatura where possible
 - AI summarization using OpenRouter Dolphin Mistral model
 - English-only processing (no translations)
 - Complete database pipeline (raw_db → filtered_db)
@@ -36,6 +37,14 @@ docker compose exec postgres psql -U postgres -d filtered_db -c "SELECT title_tr
 - 148 raw articles collected
 - 14 articles processed with AI summaries
 - Using Dolphin Mistral 24B model for high-quality summarization
+
+### Content Extraction Details
+
+- The pipeline attempts full-text extraction from each article `source_url` using `trafilatura`.
+- If full-text is blocked or unavailable (e.g., paywall/anti-bot), it falls back to the RSS content/summary.
+- Observed behavior:
+  - BBC: full-text works reliably → better summaries
+  - NYT: often returns 403 (bot protection) → fallback to RSS content; pipeline still succeeds
 
 ## Architecture Overview
 

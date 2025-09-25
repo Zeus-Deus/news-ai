@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional
 
 import feedparser
 from prefect import task, get_run_logger
+import trafilatura
 
 
 def fingerprint(source_url: str, title: str, summary: str) -> str:
@@ -46,6 +47,32 @@ def extract_body_html(entry: Any) -> str:
     return content or ""
 
 
+def extract_full_text_from_url(url: str) -> Optional[str]:
+    """Download and extract full article text from a URL using trafilatura.
+
+    Returns plain text if extraction is successful and sufficiently long,
+    otherwise returns None so callers can fallback to RSS content/summary.
+    """
+    try:
+        downloaded = trafilatura.fetch_url(url, no_ssl=True)
+        if not downloaded:
+            return None
+        text = trafilatura.extract(
+            downloaded,
+            include_images=False,
+            include_tables=False,
+            include_formatting=False,
+            favor_recall=True,
+        )
+        if text:
+            cleaned = text.strip()
+            if len(cleaned) > 200:
+                return cleaned
+    except Exception:
+        return None
+    return None
+
+
 def parse_rss_feed(feed_url: str) -> List[Dict[str, Optional[str]]]:
     """Parse RSS feed and extract article data"""
     parsed = feedparser.parse(feed_url)
@@ -56,6 +83,13 @@ def parse_rss_feed(feed_url: str) -> List[Dict[str, Optional[str]]]:
         title = getattr(entry, "title", "") or entry.get("title", "") or ""
         summary = getattr(entry, "summary", "") or entry.get("summary", "") or ""
         body_html = extract_body_html(entry)
+
+        # Try to replace RSS body with full-text extraction when possible
+        if source_url:
+            full_text = extract_full_text_from_url(source_url)
+            if full_text:
+                # Store as body_html even though it's plain text; downstream tasks strip HTML anyway
+                body_html = full_text
 
         # published can be in different fields; prefer published_parsed then updated_parsed
         published_struct = getattr(entry, "published_parsed", None) or entry.get("published_parsed")

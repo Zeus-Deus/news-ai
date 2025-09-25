@@ -3,3 +3,4 @@ prefect==2.20.18
 psycopg2-binary
 python-dotenv
 openai
+trafilatura
