@@ -12,8 +12,10 @@ const App: React.FC = () => {
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     const fetchArticles = async () => {
@@ -21,6 +23,7 @@ const App: React.FC = () => {
         const data = await getArticles(20, 0);
         setArticles(data);
         setFilteredArticles(data);
+        setHasMore(data.length === 20); // If we got exactly 20, there might be more
       } catch (err) {
         setError("Failed to load articles");
       } finally {
@@ -29,6 +32,27 @@ const App: React.FC = () => {
     };
     fetchArticles();
   }, []);
+
+  const loadMoreArticles = async () => {
+    if (loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+    try {
+      const data = await getArticles(20, articles.length);
+      if (data.length === 0) {
+        setHasMore(false);
+      } else {
+        const newArticles = [...articles, ...data];
+        setArticles(newArticles);
+        setFilteredArticles(newArticles);
+        setHasMore(data.length === 20);
+      }
+    } catch (err) {
+      setError("Failed to load more articles");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   useEffect(() => {
     if (searchQuery.trim() === "") {
@@ -88,6 +112,32 @@ const App: React.FC = () => {
                   />
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Load More Button */}
+          {!searchQuery && hasMore && !loading && (
+            <div className="flex justify-center mt-12">
+              <button
+                onClick={loadMoreArticles}
+                disabled={loadingMore}
+                className="px-6 py-3 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white font-medium rounded-lg transition-colors duration-200 flex items-center gap-2"
+              >
+                {loadingMore ? (
+                  <>
+                    <LoadingSpinner />
+                    Loading...
+                  </>
+                ) : (
+                  "Load More Articles"
+                )}
+              </button>
+            </div>
+          )}
+
+          {!searchQuery && !hasMore && articles.length > 0 && (
+            <div className="text-center mt-12 text-secondary-600 dark:text-slate-400">
+              You've reached the end of the articles
             </div>
           )}
         </div>
