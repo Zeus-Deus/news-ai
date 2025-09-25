@@ -3,19 +3,19 @@
 Main entry point for Prefect workflows.
 """
 
-from .flows.news_collection_flow import news_collection_flow
+from .flows.complete_news_pipeline_flow import complete_news_pipeline_flow
 
 
 def main():
-    """Run the default news collection flow"""
-    print("🚀 Starting Prefect News Collection Flow...")
+    """Run the complete news AI pipeline"""
+    print("🚀 Starting Complete News AI Pipeline...")
 
     try:
-        result = news_collection_flow()
-        print(f"✅ Flow completed! Saved {result} new articles.")
-        return result
+        collected, processed = complete_news_pipeline_flow()
+        print(f"✅ Pipeline completed! {collected} articles collected, {processed} processed with AI.")
+        return collected
     except Exception as e:
-        print(f"❌ Flow failed: {e}")
+        print(f"❌ Pipeline failed: {e}")
         return 1
 
 

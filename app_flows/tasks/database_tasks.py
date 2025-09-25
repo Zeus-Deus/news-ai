@@ -9,18 +9,18 @@ from prefect import task, get_run_logger
 
 
 def get_db_connection():
-    """Create connection to PostgreSQL database"""
+    """Create connection to raw_db database"""
     try:
         conn = psycopg2.connect(
             host=os.getenv("POSTGRES_HOST"),
             port=os.getenv("POSTGRES_PORT"),
-            database="raw_db",  # Always connect to raw_db for news collection
-            user=os.getenv("POSTGRES_USER"),
-            password=os.getenv("POSTGRES_PASSWORD")
+            database="raw_db",
+            user="raw_db",  # Use the raw_db user created by init script
+            password=os.getenv("POSTGRES_DEFAULT_USER_PASSWORD")
         )
         return conn
     except Exception as e:
-        print(f"❌ Database connection error: {e}")
+        print(f"❌ Raw DB connection error: {e}")
         return None
 
 
