@@ -35,6 +35,7 @@ docker compose logs -f app
 
 ### Access Points
 
+- **News API**: http://localhost:8000 (REST API for articles)
 - **Prefect UI**: http://localhost:4200 (workflow monitoring)
 - **PgAdmin**: http://localhost:5050 (database management)
 - **PostgreSQL**: localhost:5432 (direct access)
@@ -43,17 +44,18 @@ docker compose logs -f app
 
 ### Tech Stack
 
-- **Backend**: Python 3.12, Prefect 2.x (workflow orchestration)
+- **Backend**: Python 3.12, Prefect 2.x (workflow orchestration), FastAPI (REST API)
 - **Database**: PostgreSQL 17 with two databases:
   - `raw_db`: Raw RSS articles
-  - `filtered_db`: AI-processed articles (future)
-- **Containerization**: Docker Compose with 4 services
-- **Libraries**: feedparser, psycopg2-binary, python-dotenv, prefect==2.20.18
+  - `filtered_db`: AI-processed articles with summaries
+- **Containerization**: Docker Compose with 5 services
+- **Libraries**: feedparser, trafilatura, psycopg2-binary, python-dotenv, prefect==2.20.18, fastapi, uvicorn
 
 ### Services Overview
 
 | Service      | Image               | Purpose                   | Ports |
 | ------------ | ------------------- | ------------------------- | ----- |
+| **api**      | Custom Python       | REST API for articles     | 8000  |
 | **app**      | Custom Python       | News collection workflows | -     |
 | **postgres** | postgres:17         | Database storage          | 5432  |
 | **prefect**  | prefecthq/prefect:2 | Workflow orchestration    | 4200  |
@@ -63,40 +65,51 @@ docker compose logs -f app
 
 ```
 RSS Feeds → Prefect Tasks → PostgreSQL (raw_db)
-                                      ↓
-                         AI Processing (future)
-                                      ↓
-                         Website/API (future)
+                                     ↓
+                         AI Processing (OpenRouter)
+                                     ↓
+                         PostgreSQL (filtered_db)
+                                     ↓
+                         REST API (FastAPI)
 ```
 
 ## 📁 Project Structure
 
 ```
 news-ai/
-├── docker/                 # 🐳 Docker configuration
-│   ├── Dockerfile.app     # Python app container
-│   ├── startup.sh         # Auto-startup script
-│   ├── init-schema.sql    # Database schema
+├── api/                   # 🌐 REST API
+│   └── main.py           # FastAPI application
+├── docker/                # 🐳 Docker configuration
+│   ├── Dockerfile.app    # Python app container
+│   ├── startup.sh        # Auto-startup script
+│   ├── init-schema.sql   # Database schema
 │   └── init-multiple-databases.sh # Database setup
-├── app_flows/             # 🚀 Prefect workflows (core)
-│   ├── flows/            # Workflow orchestration
-│   │   └── news_collection_flow.py
-│   ├── tasks/            # Reusable tasks
+├── app_flows/            # 🚀 Prefect workflows (core)
+│   ├── flows/           # Workflow orchestration
+│   │   ├── news_collection_flow.py
+│   │   ├── ai_processing_flow.py
+│   │   └── complete_news_pipeline_flow.py
+│   ├── tasks/           # Reusable tasks
 │   │   ├── rss_tasks.py      # RSS processing
-│   │   └── database_tasks.py # Database storage
-│   └── __main__.py       # Module entry point
-├── docker-compose.yml    # 🐳 Multi-service setup
-├── requirements.txt      # 📦 Python dependencies
-└── .env.example         # 🔐 Environment template
+│   │   ├── llm_tasks.py      # AI/LLM processing
+│   │   ├── database_tasks.py # Database storage
+│   │   └── filtered_db_tasks.py # Filtered DB operations
+│   └── __main__.py      # Module entry point
+├── docker-compose.yml   # 🐳 Multi-service setup
+├── requirements.txt     # 📦 Python dependencies
+└── .env.example        # 🔐 Environment template
 ```
 
-## 🔧 Current Functionality (Step 1/3)
+## 🔧 Current Functionality (Step 2/3)
 
-### ✅ News Collection Pipeline
+### ✅ Complete News AI Pipeline
 
 - **RSS Feed Processing**: Automatically fetch articles from NYT, BBC, etc.
+- **Full-Text Extraction**: Attempt full article extraction using trafilatura
 - **Deduplication**: Fingerprint-based duplicate detection (SHA256 hashes)
-- **Database Storage**: PostgreSQL with optimized indexes
+- **AI Summarization**: English summaries using OpenRouter Dolphin Mistral model
+- **Database Storage**: PostgreSQL with optimized indexes (raw_db + filtered_db)
+- **REST API**: FastAPI endpoints for article access
 - **Error Handling**: Retry logic, connection timeouts
 - **Monitoring**: Prefect UI for real-time tracking
 
@@ -119,9 +132,32 @@ CREATE INDEX idx_fingerprint ON raw_articles(fingerprint);
 CREATE INDEX idx_published_at ON raw_articles(published_at DESC);
 ```
 
+### Database Schema (filtered_db)
+
+```sql
+-- AI-processed articles table
+CREATE TABLE filtered_articles (
+    id SERIAL PRIMARY KEY,
+    raw_article_id INTEGER REFERENCES raw_articles(id),
+    title_translated TEXT,  -- Original English title (no translation)
+    content_summary TEXT,   -- AI-generated English summary
+    content_translated TEXT, -- Reserved for future translations
+    sentiment_score FLOAT,   -- Reserved for future sentiment analysis
+    categories TEXT[],       -- Reserved for future categorization
+    ai_model_used TEXT,      -- AI model that processed this article
+    processing_status VARCHAR(50) DEFAULT 'pending',
+    processed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for performance
+CREATE INDEX idx_raw_article_id ON filtered_articles(raw_article_id);
+CREATE INDEX idx_processed_at ON filtered_articles(processed_at DESC);
+```
+
 ## 🚀 Manual Operations
 
-### Run News Collection
+### Run Complete Pipeline
 
 ```bash
 # Via package entry point (recommended)
@@ -129,6 +165,19 @@ python -m app_flows
 
 # Via Docker
 docker compose exec app python -m app_flows
+
+# Check processed articles count
+docker compose exec postgres psql -U postgres -d filtered_db -c "SELECT COUNT(*) FROM filtered_articles;"
+```
+
+### Run Individual Flows
+
+```bash
+# News collection only
+python -m app_flows.flows.news_collection_flow
+
+# AI processing only (requires articles in raw_db)
+python -m app_flows.flows.ai_processing_flow
 ```
 
 ### Database Operations
@@ -142,6 +191,19 @@ docker compose exec postgres psql -U postgres -d raw_db -c "SELECT COUNT(*) FROM
 
 # View recent articles
 docker compose exec postgres psql -U postgres -d raw_db -c "SELECT title, published_at FROM raw_articles ORDER BY created_at DESC LIMIT 5;"
+```
+
+### API Operations
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# List articles (paginated)
+curl "http://localhost:8000/articles?limit=10&offset=0"
+
+# Get specific article
+curl http://localhost:8000/articles/1
 ```
 
 ### Container Management
@@ -160,22 +222,22 @@ docker compose down
 docker compose down -v
 ```
 
-## 🔮 Future Pipeline (Step 2 & 3)
+## 🔮 Future Pipeline (Step 3/3)
 
-### 🔄 AI Processing (filtered_db)
+### ✅ AI Processing (filtered_db) - **COMPLETE**
 
-- **Language Detection**: Automatically detect language
-- **Translation**: AI-powered translation to Dutch
-- **Summarization**: Automatic summaries
-- **Sentiment Analysis**: Emotional analysis
-- **Categorization**: Topic classification
+- **AI Summarization**: ✅ English summaries using OpenRouter Dolphin Mistral
+- **Language Detection**: Reserved for future multilingual support
+- **Translation**: Reserved for future translation features
+- **Sentiment Analysis**: Reserved for future emotional analysis
+- **Categorization**: Reserved for future topic classification
 
 ### 🌐 Publishing
 
-- **Website Integration**: Direct publishing to CMS
-- **API Endpoints**: REST API for external systems
-- **Email Notifications**: Automated newsletters
-- **Social Media**: Auto-posting to platforms
+- **REST API**: ✅ FastAPI endpoints for article access
+- **Website Integration**: Ready for frontend development
+- **Email Notifications**: Reserved for future newsletter features
+- **Social Media**: Reserved for future auto-posting features
 
 ## ⚙️ Configuration
 
@@ -186,6 +248,7 @@ docker compose down -v
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your_password
 POSTGRES_MULTIPLE_DATABASES=raw_db,filtered_db
+POSTGRES_DEFAULT_USER_PASSWORD=your_default_password
 
 # Prefect
 PREFECT_API_URL=http://prefect:4200/api
@@ -193,6 +256,47 @@ PREFECT_API_URL=http://prefect:4200/api
 # PgAdmin
 PGADMIN_DEFAULT_EMAIL=admin@example.com
 PGADMIN_DEFAULT_PASSWORD=admin
+
+# OpenRouter AI (for AI summarization)
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+OPENROUTER_MODEL=cognitivecomputations/dolphin-mistral-24b-venice-edition:free
+```
+
+### API Documentation
+
+The News AI API provides RESTful endpoints to access processed articles:
+
+#### Endpoints
+
+- `GET /health` - Health check endpoint
+
+  - Returns: `{"status": "ok"}`
+
+- `GET /articles` - List processed articles with pagination
+
+  - Query Parameters:
+    - `limit` (optional): Number of articles to return (1-100, default: 20)
+    - `offset` (optional): Number of articles to skip (default: 0)
+  - Returns: Array of article objects
+
+- `GET /articles/{id}` - Get specific article by ID
+  - Path Parameters:
+    - `id`: Article ID (integer)
+  - Returns: Single article object or 404 if not found
+
+#### Article Object Structure
+
+```json
+{
+  "id": 1,
+  "raw_article_id": 123,
+  "title": "Article Title",
+  "summary": "AI-generated summary in English...",
+  "processed_at": "2025-01-01T12:00:00Z",
+  "ai_model_used": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
+  "source_url": "https://example.com/article",
+  "published_at": "2025-01-01T10:00:00Z"
+}
 ```
 
 ### RSS Feed Configuration
@@ -308,6 +412,6 @@ Licensed under the MIT License. See the LICENSE file for details.
 - Zeus-Deus
 - Yassir679
 
-**Status**: ⚡ **Step 1 Complete** - News Collection Pipeline operational
-**Next**: 🔄 **Step 2** - AI Processing integration
-**Future**: 🌐 **Step 3** - Publishing & Distribution
+**Status**: ✅ **Step 2 Complete** - AI Processing Pipeline operational
+**Next**: 🌐 **Step 3** - Frontend Development (ready for web/app integration)
+**Future**: 📊 **Advanced Features** - Sentiment analysis, categorization, multi-language support

@@ -46,6 +46,24 @@ services:
       - prefect-data:/root/.prefect
     command: prefect server start --host 0.0.0.0
 
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DEFAULT_USER_PASSWORD: ${POSTGRES_DEFAULT_USER_PASSWORD}
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "8000:8000"
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+
 volumes:
   postgres_data:
   prefect-data:
