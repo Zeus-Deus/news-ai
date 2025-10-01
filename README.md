@@ -4,6 +4,7 @@
 [![PostgreSQL](https://img.shields.io/badge/postgresql-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
 [![Prefect](https://img.shields.io/badge/Prefect-024DFD?style=for-the-badge&logo=dataflow&logoColor=white)](https://prefect.io)
 [![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://python.org)
+[![Traefik](https://img.shields.io/badge/Traefik-24A1C1?style=for-the-badge&logo=traefikproxy&logoColor=white)](https://traefik.io)
 
 An AI-powered platform that automatically collects news articles from multiple RSS feeds (NYT, BBC, TechCrunch, The Verge), processes them with AI summarization and categorization, and provides a modern web interface with filtering capabilities.
 
@@ -12,7 +13,9 @@ An AI-powered platform that automatically collects news articles from multiple R
 ### Prerequisites
 
 - Docker & Docker Compose
+- Traefik reverse proxy (external)
 - 4GB RAM available
+- Domain name configured (or modify domains in `docker-compose.yml`)
 - `.env` file (see `.env.example`)
 
 ### Installation
@@ -23,15 +26,21 @@ cd news-ai
 cp .env.example .env
 # Edit .env with your credentials
 
+# Create external Traefik network
+docker network create traefik
+
+# Start services
 docker compose up --build -d
 ```
 
 ### Access Points
 
-- **API**: http://localhost:8000
-- **Frontend**: http://localhost:3000
-- **Prefect UI**: http://localhost:4200
-- **PgAdmin**: http://localhost:5050
+> **Security**: All services are secured with Traefik reverse proxy and SSL certificates. No direct port access.
+
+- **Frontend**: https://maltem.site
+- **Prefect UI**: https://prefect.maltem.site
+- **PgAdmin**: https://pgadmin.maltem.site
+- **API**: Internal only (accessible via frontend proxy)
 
 ## Architecture
 
@@ -41,19 +50,52 @@ docker compose up --build -d
 - **Frontend**: React, TypeScript, TailwindCSS
 - **Database**: PostgreSQL 17 (raw_db + filtered_db)
 - **AI**: OpenRouter API for summarization
+- **Reverse Proxy**: Traefik with Let's Encrypt SSL
 - **Containerization**: Docker Compose
 
 ### Services
 
-- **API**: REST API for articles (port 8000)
-- **Frontend**: React web interface (port 3000)
-- **Prefect**: Workflow orchestration (port 4200)
-- **PostgreSQL**: Database storage (port 5432)
-- **PgAdmin**: Database management (port 5050)
+- **Frontend**: React web interface (public via Traefik)
+- **API**: REST API for articles (internal only)
+- **Prefect**: Workflow orchestration (public via Traefik)
+- **PostgreSQL**: Database storage (internal only)
+- **PgAdmin**: Database management (public via Traefik)
+
+### Network Architecture
+
+```
+Internet
+    ↓
+Traefik (SSL/TLS)
+    ↓
+┌─────────────────────────────────────┐
+│ Proxy Network (traefik)             │
+│  - Frontend (React)                 │
+│  - PgAdmin (admin)                  │
+│  - Prefect UI (admin)               │
+└─────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────┐
+│ Frontend Network                    │
+│  - API (internal only)              │
+└─────────────────────────────────────┘
+    ↓
+┌─────────────────────────────────────┐
+│ Backend Network (isolated)          │
+│  - PostgreSQL                       │
+│  - Worker processes                 │
+└─────────────────────────────────────┘
+```
+
+**Security Features**:
+- No exposed ports (bypass prevention)
+- API not publicly accessible
+- Database fully isolated in internal network
+- All public traffic via SSL (Let's Encrypt)
 
 ### Data Flow
 
-RSS Feeds (NYT, BBC, TechCrunch, The Verge) → Raw Storage → AI Processing → Filtered Storage → API → Frontend
+RSS Feeds (NYT, BBC, TechCrunch, The Verge) → Raw Storage → AI Processing → Filtered Storage → API (internal) → Frontend → User
 
 ## Features
 
@@ -70,6 +112,8 @@ RSS Feeds (NYT, BBC, TechCrunch, The Verge) → Raw Storage → AI Processing �
 - **Database Management**: PgAdmin for data administration
 
 ## API
+
+> **Note**: The API is internal only and not directly accessible from the internet. Frontend uses React proxy to communicate with the API securely.
 
 ### Endpoints
 
@@ -90,6 +134,16 @@ RSS Feeds (NYT, BBC, TechCrunch, The Verge) → Raw Storage → AI Processing �
   "processed_at": "2025-01-01T12:00:00Z",
   "ai_model_used": "google/gemma-3-12b-it"
 }
+```
+
+### Internal Access (for development/debugging)
+
+```bash
+# From within Docker network
+docker compose exec frontend curl http://api:8000/articles
+
+# Or exec into any container
+docker compose exec api curl http://localhost:8000/articles
 ```
 
 ## Configuration
@@ -131,14 +185,33 @@ docker compose exec app python -m app_flows.flows.ai_processing_flow
 ### Check Results
 
 ```bash
-# View articles via API
-curl http://localhost:8000/articles
+# View articles via web interface
+open https://maltem.site
+
+# View articles via internal API (from within Docker network)
+docker compose exec frontend curl http://api:8000/articles
 
 # Monitor workflows
-open http://localhost:4200
+open https://prefect.maltem.site
 
 # Database management
-open http://localhost:5050
+open https://pgadmin.maltem.site
+```
+
+### Domain Configuration
+
+Update your DNS records to point to your server:
+
+```
+maltem.site           A    YOUR_SERVER_IP
+prefect.maltem.site   A    YOUR_SERVER_IP
+pgadmin.maltem.site   A    YOUR_SERVER_IP
+```
+
+Or modify domains in `docker-compose.yml` labels:
+
+```yaml
+- "traefik.http.routers.frontend.rule=Host(`your-domain.com`)"
 ```
 
 ## License

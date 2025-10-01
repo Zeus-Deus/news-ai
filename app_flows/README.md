@@ -164,7 +164,7 @@ python -m app_flows.flows.ai_processing_flow
 docker compose up --build -d
 
 # View Prefect UI
-open http://localhost:4200
+open https://prefect.maltem.site
 
 # Check logs
 docker compose logs app
@@ -204,7 +204,7 @@ RSS_FEEDS = [
 
 ## Monitoring
 
-- **Prefect UI**: View flow runs, task states, and logs at http://localhost:4200
+- **Prefect UI**: View flow runs, task states, and logs at https://prefect.maltem.site
 - **Logs**: All tasks include structured logging
 - **Retries**: Automatic retry on failures with exponential backoff
 
