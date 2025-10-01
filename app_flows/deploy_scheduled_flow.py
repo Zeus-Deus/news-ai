@@ -16,7 +16,7 @@ from app_flows.flows.complete_news_pipeline_flow import complete_news_pipeline_f
 deployment = Deployment.build_from_flow(
     flow=complete_news_pipeline_flow,
     name="scheduled-news-pipeline",
-    schedule=IntervalSchedule(interval=timedelta(minutes=15)),
+    schedules=[IntervalSchedule(interval=timedelta(minutes=15))],
     work_queue_name="default",
     is_schedule_active=True,
     description="Automatically collects and processes news articles every 15 minutes"

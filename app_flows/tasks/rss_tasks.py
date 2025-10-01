@@ -93,7 +93,17 @@ def extract_full_text_from_url(url: str) -> Optional[str]:
     otherwise returns None so callers can fallback to RSS content/summary.
     """
     try:
-        downloaded = trafilatura.fetch_url(url, no_ssl=True)
+        # Add proper headers to avoid being blocked
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+        }
+        
+        downloaded = trafilatura.fetch_url(url, no_ssl=True, headers=headers)
         if not downloaded:
             return None
         text = trafilatura.extract(
@@ -130,6 +140,9 @@ def parse_rss_feed(feed_url: str) -> List[Dict[str, Optional[str]]]:
             if full_text:
                 # Store as body_html even though it's plain text; downstream tasks strip HTML anyway
                 body_html = full_text
+                print(f"✅ Extracted full text ({len(full_text)} chars) from: {source_url}")
+            else:
+                print(f"⚠️  Full text extraction failed, using RSS content for: {source_url}")
 
         # published can be in different fields; prefer published_parsed then updated_parsed
         published_struct = getattr(entry, "published_parsed", None) or entry.get("published_parsed")

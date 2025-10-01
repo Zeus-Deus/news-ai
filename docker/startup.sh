@@ -25,8 +25,10 @@ fi
 echo "📅 Deploying scheduled news pipeline (every 15 minutes)..."
 if python app_flows/deploy_scheduled_flow.py; then
     echo "✅ Scheduled deployment created successfully!"
+    echo "📊 Check Prefect UI at https://prefect.maltem.site to see the deployment"
 else
-    echo "⚠️  Deployment creation failed"
+    echo "⚠️  Deployment creation failed - check logs above"
+    echo "🔄 Worker will still start, but scheduled runs may not work"
 fi
 
 echo "📊 Prefect UI: https://prefect.maltem.site"
@@ -35,5 +37,16 @@ echo "🌐 Frontend: https://maltem.site"
 echo ""
 echo "🔄 Starting Prefect worker to process scheduled flows..."
 
+# Verify Prefect server connection before starting worker
+echo "🔍 Verifying Prefect server connection..."
+if curl -s http://prefect:4200/api/health > /dev/null; then
+    echo "✅ Prefect server is accessible"
+else
+    echo "❌ Cannot reach Prefect server - worker may not function properly"
+fi
+
 # Start Prefect worker to execute scheduled flows
-exec prefect worker start --pool default-agent-pool --type process
+echo "🚀 Starting worker with pool 'default' to match deployment work queue..."
+echo "📊 Worker will process scheduled runs every 15 minutes"
+echo "🔍 Monitor logs for 'Flow run' messages to see scheduled executions"
+exec prefect worker start --pool default --type process

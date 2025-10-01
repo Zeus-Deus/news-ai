@@ -37,17 +37,26 @@ def summarize_article_task(body_html: str, target_lang: str = "en") -> Optional[
     import re
     clean_text = re.sub(r'<[^>]+>', '', body_html).strip()
 
-    if len(clean_text) < 100:
+    if len(clean_text) < 50:
         logger.warning("Article content too short for meaningful summarization")
         return None
 
     model = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.2-3b-instruct:free")
 
-    prompt = f"""Summarize the following news article in English in 3-5 sentences.
+    # Adjust prompt based on content length
+    if len(clean_text) < 200:
+        prompt = f"""The following is a short news article or headline. Provide a brief 1-2 sentence summary in English, expanding on the key information if possible.
+
+Article content:
+{clean_text[:4000]}
+
+Summary:"""
+    else:
+        prompt = f"""Summarize the following news article in English in 3-5 sentences.
 Be factual, neutral and comprehensive. Avoid opinions or extra context.
 
 Article content:
-{clean_text[:4000]}  # Limit to avoid token limits
+{clean_text[:4000]}
 
 Summary:"""
 
