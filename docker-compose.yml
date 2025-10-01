@@ -8,6 +8,10 @@ services:
     depends_on:
       - postgres
       - prefect
+    networks:
+      - backend
+    labels:
+      - "traefik.enable=false"
 
   postgres:
     image: postgres:17
@@ -25,26 +29,50 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh
       - ./docker/init-schema.sql:/docker-entrypoint-initdb.d/init-schema.sql
+    networks:
+      - backend
+    labels:
+      - "traefik.enable=false"
 
   pgadmin:
     image: dpage/pgadmin4
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    ports:
-      - "5050:80"
     depends_on:
       - postgres
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pgadmin.rule=Host(`pgadmin.maltem.site`)"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.pgadmin.entrypoints=websecure"
+      - "traefik.http.routers.pgadmin.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.pgadmin.tls=true"
+      - "traefik.http.services.pgadmin.loadbalancer.server.port=80"
+    networks:
+      - traefik
+      - backend
 
   prefect:
     image: prefecthq/prefect:2-python3.12
-    ports:
-      - "4200:4200"
     environment:
       PREFECT_API_URL: ${PREFECT_API_URL}
     volumes:
       - prefect-data:/root/.prefect
     command: prefect server start --host 0.0.0.0
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prefect.rule=Host(`prefect.maltem.site`)"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.prefect.entrypoints=websecure"
+      - "traefik.http.routers.prefect.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.prefect.tls=true"
+      - "traefik.http.services.prefect.loadbalancer.server.port=4200"
+      # Gebruik bestaande Traefik BasicAuth middleware (zelfde als dashboard)
+      - "traefik.http.routers.prefect.middlewares=auth"
+    networks:
+      - traefik
+      - backend  # App container kan nu met Prefect communiceren
 
   api:
     build:
@@ -60,27 +88,43 @@ services:
       POSTGRES_DEFAULT_USER_PASSWORD: ${POSTGRES_DEFAULT_USER_PASSWORD}
     volumes:
       - .:/usr/src/app
-    ports:
-      - "8000:8000"
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+    # API is NIET publiek toegankelijk - alleen via interne frontend network
+    # Voor development: gebruik REACT_APP_API_URL=http://api:8000 (interne Docker URL)
+    # Voor production: frontend nginx proxyt /api naar http://api:8000
+    networks:
+      - frontend
+      - backend
+    labels:
+      - "traefik.enable=false"
 
   frontend:
-    image: zeusdeus8/react-initialized
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
     container_name: news-ai-frontend
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-    environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
-      - REACT_APP_API_URL=http://localhost:8000
     depends_on:
       - api
-    stdin_open: true
-    tty: true
-    command: sh -c "npm install && npm start"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`maltem.site`)"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    networks:
+      - traefik
+      - frontend
 
 volumes:
   postgres_data:
   prefect-data:
+
+networks:
+  frontend:
+    internal: false
+  backend:
+    internal: false  # Moet false zijn zodat app container RSS feeds kan ophalen
+  traefik:
+    external: true
