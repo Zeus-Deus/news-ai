@@ -34,7 +34,9 @@ app = FastAPI(title="News AI API", version="0.1.0")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # React dev server
+    # API is internal only - accessed via React proxy, so CORS not needed for production
+    # But allow localhost for development/testing
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "https://maltem.site"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

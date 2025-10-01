@@ -2,6 +2,7 @@
   "name": "news-ai-frontend",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://api:8000",
   "dependencies": {
     "@types/node": "^20.16.5",
     "@types/react": "^18.3.5",

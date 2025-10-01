@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
+// Gebruik relatieve URLs - React proxy stuurt dit door naar http://api:8000
+// Dit betekent dat de API niet publiek toegankelijk hoeft te zijn
+const API_URL = "";
 
 export const getArticles = async (limit: number = 20, offset: number = 0) => {
   const response = await axios.get(`${API_URL}/articles`, {
