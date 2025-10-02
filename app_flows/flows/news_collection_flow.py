@@ -8,9 +8,9 @@ load_dotenv(dotenv_path="/usr/src/app/.env")
 
 from prefect import flow, get_run_logger
 
-# Use relative imports within the local package to avoid name collisions
-from ..tasks.rss_tasks import fetch_rss_feed_task
-from ..tasks.database_tasks import save_articles_to_database_task
+# Use absolute imports for Prefect deployments
+from app_flows.tasks.rss_tasks import fetch_rss_feed_task
+from app_flows.tasks.database_tasks import save_articles_to_database_task
 
 
 # Define RSS feeds to monitor

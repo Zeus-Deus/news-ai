@@ -8,6 +8,13 @@ services:
     depends_on:
       - postgres
       - prefect
+    environment:
+      PREFECT_API_URL: ${PREFECT_API_URL}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DEFAULT_USER_PASSWORD: ${POSTGRES_DEFAULT_USER_PASSWORD}
     networks:
       - backend
     labels:
@@ -73,6 +80,32 @@ services:
     networks:
       - traefik
       - backend  # App container kan nu met Prefect communiceren
+
+  # Prefect agent for volume-mounted code execution
+  # Note: Agents are deprecated but work better with LocalFileSystem storage
+  agent:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.app
+    depends_on:
+      - prefect
+      - postgres
+    environment:
+      PREFECT_API_URL: ${PREFECT_API_URL}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DEFAULT_USER_PASSWORD: ${POSTGRES_DEFAULT_USER_PASSWORD}
+    volumes:
+      - .:/usr/src/app  # Mount code so agent can access it
+    working_dir: /usr/src/app
+    command: prefect agent start -q default
+    networks:
+      - backend
+    labels:
+      - "traefik.enable=false"
+    restart: unless-stopped
 
   api:
     build:

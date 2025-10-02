@@ -9,9 +9,9 @@ load_dotenv(dotenv_path="/usr/src/app/.env")
 from prefect import flow, get_run_logger
 import os
 
-# Import tasks
-from ..tasks.llm_tasks import summarize_article_task, keep_original_title_task, categorize_article_task
-from ..tasks.filtered_db_tasks import get_unprocessed_articles_task, save_filtered_article_task
+# Import tasks (using absolute imports for Prefect deployments)
+from app_flows.tasks.llm_tasks import summarize_article_task, keep_original_title_task, categorize_article_task
+from app_flows.tasks.filtered_db_tasks import get_unprocessed_articles_task, save_filtered_article_task
 
 
 @flow(name="ai-processing-flow", retries=1)

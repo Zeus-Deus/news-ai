@@ -8,9 +8,12 @@ load_dotenv(dotenv_path="/usr/src/app/.env")
 
 from prefect import flow, get_run_logger
 
-# Import flows
-from .news_collection_flow import news_collection_flow
-from .ai_processing_flow import ai_processing_flow
+# Import flows (using absolute imports for Prefect deployments)
+import sys
+import os
+sys.path.insert(0, '/usr/src/app')
+from app_flows.flows.news_collection_flow import news_collection_flow
+from app_flows.flows.ai_processing_flow import ai_processing_flow
 
 
 @flow(name="complete-news-pipeline", retries=1)
